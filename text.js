@@ -3,11 +3,13 @@
 const TEXT = {
   consent_html:
     "<h2>Gurenɛ production study</h2>" +
-    "<p><b>[Replace this with the approved consent text.]</b></p>" +
-    "<p>In this study you will read short phrases aloud and your voice will be recorded.</p>" +
+    "<p>You are invited to participate in a speech production research study. During this session, you will be asked to read short phrases and record your voice via your microphone.</p>" +
+    "<p>Your audio recordings will be de-identified, and no personal information will be linked to them. All data are stored securely and kept strictly confidential. Participation carries no known risks.</p>" +
+    "<p>You will be offered 20 cedis as compensation. Participation is completely voluntary—you may withdraw at any time by closing your browser.</p>" +
     "<p>The study takes about 20 to 25 minutes.</p>" +
-    "<p><b>Please continue only if you are a native speaker of Gurenɛ and can read simple phrases.</b></p>",
-  consent_button: "I agree",
+    "<p><b>Please continue only if you are a native speaker of Gurenɛ and can read simple phrases.</b></p>" +
+    "<p>By clicking \"I Agree,\" you confirm that you are at least 18 years old and consent to participate and have your voice recorded.</p>",
+  consent_button: "I Agree",
 
   number_wait: "One moment…",
 
