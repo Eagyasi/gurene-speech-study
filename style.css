@@ -1,0 +1,18 @@
+/* Large text and large buttons so the study is easy to use on a phone. */
+.jspsych-content { max-width: 720px; padding: 0 16px; font-size: 20px; line-height: 1.45; }
+.phrase { font-size: clamp(40px, 11vw, 84px); line-height: 1.2; margin: 8vh 0 6vh; }
+.jspsych-btn { font-size: 22px; padding: 16px 32px; margin: 8px; border-radius: 10px; }
+.note { font-size: 16px; color: #555; }
+.rec { font-size: 16px; color: #b00020; letter-spacing: 0.04em; margin-top: 4vh; }
+.rec::before { content: "● "; }
+.review { text-align: left; font-size: 16px; }
+.review table { border-collapse: collapse; width: 100%; }
+.review td { padding: 6px 8px; border-bottom: 1px solid #ddd; vertical-align: middle; }
+.review audio { height: 34px; width: 220px; }
+input[type="text"] { font-size: 22px; padding: 8px; }
+.review th { text-align: left; padding: 16px 8px 6px; font-size: 18px; border-bottom: 2px solid #333; }
+.review .bad { color: #b00020; font-weight: bold; }
+#review-summary { font-weight: bold; }
+#jspsych-survey-html-form label { display: block; text-align: left; font-size: 18px; }
+#jspsych-survey-html-form input, #jspsych-survey-html-form select { font-size: 22px; padding: 8px; width: 100%; box-sizing: border-box; margin-top: 4px; }
+.bad { color: #b00020; font-weight: bold; }
