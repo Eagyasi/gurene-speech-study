@@ -176,8 +176,8 @@
     });
     mic.stream = stream;
     try {
-      // microphone -> one fixed volume -> recorder. The volume is set once,
-      // in the sound check, and never changes during the session.
+      // microphone -> volume -> recorder. The volume is set in the sound
+      // check. After that it can only be lowered, by the loudness guard.
       const Ctx = window.AudioContext || window.webkitAudioContext;
       const ctx = new Ctx();
       const source = ctx.createMediaStreamSource(stream);
@@ -210,10 +210,18 @@
 
   function meterStart() {
     if (!mic.analyser) return;
-    meter.rms = 0; meter.peak = 0;
+    meter.rms = 0; meter.peak = 0; meter.t0 = performance.now();
     meter.buf = meter.buf || new Float32Array(mic.analyser.fftSize);
     clearInterval(meter.timer);
     meter.timer = setInterval(() => {
+      // Only listen while a recording is being made, so that playback from
+      // the phone's own speaker is never mistaken for the voice.
+      let rec = null;
+      try { rec = jsPsych.pluginAPI.getMicrophoneRecorder(); } catch (e) { rec = null; }
+      if (rec && (rec.state === "inactive" || rec.state === "paused")) return;
+      // Skip the first moment of each recording: the meter's buffer can still
+      // hold sound from before the volume was last changed.
+      if (performance.now() - meter.t0 < 150) return;
       mic.analyser.getFloatTimeDomainData(meter.buf);
       let sum = 0, peak = 0;
       for (let i = 0; i < meter.buf.length; i++) {
@@ -232,6 +240,16 @@
   }
 
   const round3 = (x) => Math.round(x * 1000) / 1000;
+
+  // Loudness guard: if a recording came close to the loudest level the
+  // recorder can hold, lower the volume for everything that follows. The
+  // volume is never raised again, so one loud phrase cannot be followed by
+  // distorted ones. A change of volume does not change the formants.
+  function guardGain(peak) {
+    if (!mic.gain || !(peak > CONFIG.GUARD_PEAK)) return false;
+    mic.gain.gain.value = Math.max(0.05, mic.gain.gain.value * CONFIG.SAFE_PEAK / peak);
+    return true;
+  }
 
   function recorderFormat() {
     const mime = (jsPsych.pluginAPI.getMicrophoneRecorder().mimeType || "audio/webm").toLowerCase();
@@ -261,6 +279,9 @@
         const level = meterStop();
         data.level_peak = mic.analyser ? round3(level.peak) : null;
         data.level_rms = mic.analyser ? round3(level.rms) : null;
+        data.gain_used = mic.gain ? round3(mic.gain.gain.value) : null;
+        data.clipped = mic.analyser ? level.peak >= 0.99 : null;
+        guardGain(level.peak);
         const f = recorderFormat();
         data.filename = `${prefix()}_${pad(t.order)}_${t.block}_${t.item}_r${t.repetition}.${f.ext}`;
         data.mime_type = f.mime;
@@ -282,7 +303,14 @@
     accept_button_label: TEXT.accept,
     data: { phase: "practice", item: item },
     on_start: newRecorder,
-    on_finish: (data) => { data.response = null; }
+    on_load: meterStart,
+    on_finish: (data) => {
+      const level = meterStop();
+      data.level_peak = mic.analyser ? round3(level.peak) : null;
+      data.gain_used = mic.gain ? round3(mic.gain.gain.value) : null;
+      guardGain(level.peak);
+      data.response = null;
+    }
   });
 
   // Sound check: one phrase is measured and the volume is fixed from it.

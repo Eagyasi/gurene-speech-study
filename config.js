@@ -54,6 +54,14 @@ const CONFIG = {
   TARGET_LEVEL: 0.12,
   MAX_GAIN: 20,
 
+  // Loudness guard. After the sound check the volume can only go DOWN.
+  // If any recording, practice or real, peaks above GUARD_PEAK (1 is the
+  // loudest the recorder can hold; above it the sound is distorted), the
+  // volume is lowered so that the same voice would peak at SAFE_PEAK.
+  // Every recording's volume is saved in the data as gain_used.
+  GUARD_PEAK: 0.7,
+  SAFE_PEAK: 0.35,
+
   // How many times each upload is tried before it is set aside for a retry.
   UPLOAD_ATTEMPTS: 3
 };
