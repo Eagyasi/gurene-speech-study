@@ -13,7 +13,7 @@ const CONFIG = {
   // How many times each item is recorded. Every repetition is a separately
   // shuffled pass through the items. In test mode, adding reps=1 to the web
   // address overrides this for a quick run. Real sessions ignore it.
-  REPETITIONS: 3,
+  REPETITIONS: 2,
 
   // Participant numbers are given out automatically in order: P001, P002, ...
   // A number is given only when someone FINISHES the study, so people who
@@ -36,8 +36,8 @@ const CONFIG = {
   GAP_MS: 500,
 
   // A rest screen appears after this many recordings, counted from the start
-  // of each part. With 30, Part 2 (120 recordings) has three rests, and the
-  // screen between Part 1 and Part 2 is a fourth pause.
+  // of each part. With 30, Part 2 (80 recordings) has two rests, after 30 and
+  // after 60, and the screen between Part 1 and Part 2 is a third pause.
   BREAK_EVERY: 30,
 
   // Syllables for the two practice recordings. They are not in the stimulus

@@ -5,7 +5,7 @@ const TEXT = {
     "<h2>Gurenɛ production study</h2>" +
     "<p>You are invited to participate in a speech production research study. During this session, you will be asked to read short phrases and record your voice via your microphone.</p>" +
     "<p>Your audio recordings will be de-identified, and no personal information will be linked to them. All data are stored securely and kept strictly confidential. Participation carries no known risks.</p>" +
-    "<p>You will be offered 20 cedis as compensation. If you choose to be paid, your mobile money details are used only for the payment and deleted afterwards. Participation is completely voluntary—you may withdraw at any time by closing your browser.</p>" +
+    "<p>You will be offered 30 cedis as compensation. If you choose to be paid, your mobile money details are used only for the payment and deleted afterwards. Participation is completely voluntary—you may withdraw at any time by closing your browser.</p>" +
     "<p>The study takes about 20 to 25 minutes.</p>" +
     "<p><b>Please continue only if you are a native speaker of Gurenɛ and can read simple phrases.</b></p>" +
     "<p>By clicking \"I Agree,\" you confirm that you are at least 18 years old and consent to participate and have your voice recorded.</p>",
@@ -73,7 +73,7 @@ const TEXT = {
 
   payment_offer_html:
     "<h2>You have finished. Thank you.</h2>" +
-    "<p>You can receive 20 Ghana cedis by mobile money for taking part.</p>",
+    "<p>You can receive 30 Ghana cedis by mobile money for taking part.</p>",
   payment_yes: "Enter payment details",
   payment_no: "I do not want payment",
   payment_form_html:
