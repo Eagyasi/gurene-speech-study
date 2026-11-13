@@ -35,7 +35,7 @@ const TEXT = {
   instructions_html:
     "<p>A phrase will appear on the screen.</p>" +
     "<p>Read it aloud once, in your normal voice.</p>" +
-    "<p>Then tap <b>Done</b> to go to the next phrase.</p>",
+    "<p><b>Please tap Done after each reading.</b></p>",
   instructions_button: "Continue",
 
   check_html:
@@ -54,8 +54,8 @@ const TEXT = {
   record_again: "Record again",
   accept: "It sounds fine",
 
-  block_isolated_html: "<p>Part 1 of 2.</p><p>Read each phrase aloud, then tap <b>Done</b>.</p>",
-  block_cv_html: "<p>Part 2 of 2.</p><p>Read each phrase aloud, then tap <b>Done</b>.</p>",
+  block_isolated_html: "<p>Part 1 of 2.</p><p>Read each phrase aloud.</p><p><b>Please tap Done after each reading.</b></p>",
+  block_cv_html: "<p>Part 2 of 2.</p><p>Read each phrase aloud.</p><p><b>Please tap Done after each reading.</b></p>",
   block_button: "Start",
 
   recording: "recording",
