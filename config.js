@@ -30,7 +30,7 @@ const CONFIG = {
   PAYMENT_NETWORKS: ["MTN", "Telecel (Vodafone)", "AT (AirtelTigo)"],
 
   // Longest recording per item, in milliseconds. Tapping Done ends it sooner.
-  MAX_RECORDING_MS: 6000,
+  MAX_RECORDING_MS: 10000,
 
   // Silent pause between items, in milliseconds.
   GAP_MS: 500,
