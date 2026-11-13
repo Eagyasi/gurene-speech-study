@@ -90,6 +90,7 @@ const TEXT = {
 
   end_html: "<h2>Thank you.</h2><p>Your recordings have been saved. You can close this page.</p>",
   end_code_html: "<p>Your code is <b>{code}</b>. Keep it in case you need to contact the researcher.</p>",
+  payment_test_note: "<p class='bad'>Practice run. No payment is made and nothing you enter here is sent.</p>",
   end_test_html:
     "<h2>Test finished</h2>" +
     "<p>Test mode: nothing was uploaded. Listen to the recordings below to check the sound.</p>",

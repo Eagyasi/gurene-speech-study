@@ -451,7 +451,7 @@
   // Payment details go into their own file and are wiped from the study data.
   const paymentOffer = {
     type: jsPsychHtmlButtonResponse,
-    stimulus: TEXT.payment_offer_html,
+    stimulus: (TEST_MODE ? TEXT.payment_test_note : "") + TEXT.payment_offer_html,
     choices: [TEXT.payment_yes, TEXT.payment_no],
     data: { phase: "payment_offer" },
     on_finish: (data) => { wantsPayment = data.response === 0; }
@@ -460,7 +460,7 @@
   const field = (label, input) => `<p><label>${label}<br>${input}</label></p>`;
   const paymentForm = {
     type: jsPsychSurveyHtmlForm,
-    preamble: TEXT.payment_form_html,
+    preamble: (TEST_MODE ? TEXT.payment_test_note : "") + TEXT.payment_form_html,
     html:
       field(TEXT.payment_name, '<input name="name" type="text" required autocomplete="off">') +
       field(TEXT.payment_number, '<input name="number" id="momo1" type="tel" inputmode="numeric" pattern="[0-9+ ]{9,15}" required autocomplete="off">') +
