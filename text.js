@@ -58,6 +58,9 @@ const TEXT = {
   block_cv_html: "<p>Part 2 of 2.</p><p>Read each phrase aloud.</p><p><b>Please tap Done after each reading.</b></p>",
   block_button: "Start",
 
+  empty_html: "<p>We did not hear you.</p><p>Please read it again.</p>",
+  empty_button: "Read it again",
+
   recording: "recording",
   done: "Done",
 

@@ -62,6 +62,17 @@ const CONFIG = {
   GUARD_PEAK: 0.7,
   SAFE_PEAK: 0.35,
 
+  // Empty recordings. A recording with less than MIN_VOICE_MS of voice in it
+  // counts as empty. The participant then sees "We did not hear you" and
+  // reads the phrase again, up to EMPTY_RETRIES more times. Only the last
+  // attempt is saved, so the number of files does not change.
+  MIN_VOICE_MS: 300,
+  EMPTY_RETRIES: 2,
+
+  // The sound check asks again when it hears no voice. After this many tries
+  // the study goes on anyway, and the loudness guard keeps the volume safe.
+  CHECK_ATTEMPTS: 3,
+
   // How many times each upload is tried before it is set aside for a retry.
   UPLOAD_ATTEMPTS: 3
 };

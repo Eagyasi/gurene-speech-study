@@ -206,11 +206,12 @@
   }
 
   // Loudness meter: watches the signal while a phrase is being recorded.
-  const meter = { timer: null, rms: 0, peak: 0, buf: null };
+  const meter = { timer: null, rms: 0, peak: 0, buf: null, frames: [] };
+  const TICK_MS = 40;
 
   function meterStart() {
     if (!mic.analyser) return;
-    meter.rms = 0; meter.peak = 0; meter.t0 = performance.now();
+    meter.rms = 0; meter.peak = 0; meter.frames = []; meter.t0 = performance.now();
     meter.buf = meter.buf || new Float32Array(mic.analyser.fftSize);
     clearInterval(meter.timer);
     meter.timer = setInterval(() => {
@@ -229,14 +230,42 @@
         sum += v * v;
         if (v > peak) peak = v; else if (-v > peak) peak = -v;
       }
-      meter.rms = Math.max(meter.rms, Math.sqrt(sum / meter.buf.length));
+      const frame = Math.sqrt(sum / meter.buf.length);
+      meter.frames.push(frame);
+      meter.rms = Math.max(meter.rms, frame);
       meter.peak = Math.max(meter.peak, peak);
-    }, 40);
+    }, TICK_MS);
   }
 
   function meterStop() {
     clearInterval(meter.timer);
-    return { rms: meter.rms, peak: meter.peak };
+    return { rms: meter.rms, peak: meter.peak, frames: meter.frames.slice() };
+  }
+
+  // How many milliseconds of the recording were at least this loud.
+  const soundMs = (frames, threshold) => frames.filter((f) => f >= threshold).length * TICK_MS;
+
+  // Was a voice heard? During the session the volume is already set, so a
+  // voice is anything clearly above silence and above a fifth of this
+  // person's usual level.
+  function voiceMs(level) {
+    return soundMs(level.frames, Math.max(0.02, 0.2 * (mic.usual || 0)));
+  }
+  function rememberLevel(rms) {
+    mic.usual = mic.usual ? 0.7 * mic.usual + 0.3 * rms : rms;
+  }
+
+  // The sound check runs before the volume is set, when a quiet microphone
+  // and a silent room can look alike. So it accepts either a clearly loud
+  // voice, or sound that stands well above the quietest moments of the same
+  // recording for long enough to be a phrase and not a tap on the screen.
+  function checkHeard(level) {
+    if (!level.frames.length) return false;
+    if (soundMs(level.frames, 0.02) >= CONFIG.MIN_VOICE_MS) return true;
+    const sorted = level.frames.slice().sort((a, b) => a - b);
+    const floor = sorted[Math.floor(sorted.length * 0.1)];
+    return level.rms >= 0.002 && level.rms >= 4 * floor &&
+      soundMs(level.frames, Math.max(0.002, 2.5 * floor)) >= CONFIG.MIN_VOICE_MS;
   }
 
   const round3 = (x) => Math.round(x * 1000) / 1000;
@@ -247,7 +276,9 @@
   // distorted ones. A change of volume does not change the formants.
   function guardGain(peak) {
     if (!mic.gain || !(peak > CONFIG.GUARD_PEAK)) return false;
-    mic.gain.gain.value = Math.max(0.05, mic.gain.gain.value * CONFIG.SAFE_PEAK / peak);
+    const before = mic.gain.gain.value;
+    mic.gain.gain.value = Math.max(0.05, before * CONFIG.SAFE_PEAK / peak);
+    if (mic.usual) mic.usual *= mic.gain.gain.value / before;
     return true;
   }
 
@@ -264,8 +295,14 @@
   const display = (item) =>
     `<div class="phrase">${phrase(item)}</div><div class="rec">${TEXT.recording}</div>`;
 
+  // If nothing was heard, the phrase is shown again. Only the attempt that
+  // is kept gets a file. If several phrases in a row stay empty even after
+  // their retries, the repeating is switched off so nobody gets stuck.
+  let emptyRun = 0;
   function recordTrial(t) {
-    return {
+    let attempt = 0;
+    let again = false;
+    const trial = {
       type: jsPsychHtmlAudioResponse,
       stimulus: display(t.item),
       recording_duration: CONFIG.MAX_RECORDING_MS,
@@ -273,15 +310,25 @@
       done_button_label: TEXT.done,
       post_trial_gap: CONFIG.GAP_MS,
       data: Object.assign({ phase: "recording" }, t),
-      on_start: newRecorder,
+      on_start: () => { attempt += 1; newRecorder(); },
       on_load: meterStart,
       on_finish: (data) => {
         const level = meterStop();
+        const voice = mic.analyser ? voiceMs(level) : null;
+        const heard = voice === null ? null : voice >= CONFIG.MIN_VOICE_MS;
         data.level_peak = mic.analyser ? round3(level.peak) : null;
         data.level_rms = mic.analyser ? round3(level.rms) : null;
         data.gain_used = mic.gain ? round3(mic.gain.gain.value) : null;
         data.clipped = mic.analyser ? level.peak >= 0.99 : null;
+        data.voice_ms = voice;
+        data.heard = heard;
+        data.attempt = attempt;
+        again = heard === false && attempt <= CONFIG.EMPTY_RETRIES && emptyRun < 3;
+        data.kept = !again;
+        if (heard) rememberLevel(level.rms);
         guardGain(level.peak);
+        if (again) { data.response = null; return; }
+        emptyRun = heard === false ? emptyRun + 1 : 0;
         const f = recorderFormat();
         data.filename = `${prefix()}_${pad(t.order)}_${t.block}_${t.item}_r${t.repetition}.${f.ext}`;
         data.mime_type = f.mime;
@@ -289,6 +336,13 @@
         data.response = null;            // the audio is saved as its own file
         jsPsych.progressBar.progress = t.order / TOTAL;
       }
+    };
+    return {
+      timeline: [
+        trial,
+        { timeline: [button(TEXT.empty_html, TEXT.empty_button)], conditional_function: () => again }
+      ],
+      loop_function: () => again
     };
   }
 
@@ -308,12 +362,15 @@
       const level = meterStop();
       data.level_peak = mic.analyser ? round3(level.peak) : null;
       data.gain_used = mic.gain ? round3(mic.gain.gain.value) : null;
+      if (mic.analyser && voiceMs(level) >= CONFIG.MIN_VOICE_MS) rememberLevel(level.rms);
       guardGain(level.peak);
       data.response = null;
     }
   });
 
-  // Sound check: one phrase is measured and the volume is fixed from it.
+  // Sound check: one phrase is measured and the volume is set from it. If no
+  // voice is heard the participant is asked to read it again.
+  let checkTries = 0;
   const soundCheck = {
     timeline: [
       button(TEXT.check_html, TEXT.check_button),
@@ -328,11 +385,17 @@
         on_load: meterStart,
         on_finish: (data) => {
           const level = meterStop();
-          mic.heard = level.rms >= 0.002;
-          if (mic.heard) {
+          checkTries += 1;
+          const voice = checkHeard(level);
+          // After the last allowed try the study goes on with its best guess.
+          mic.heard = voice || checkTries >= CONFIG.CHECK_ATTEMPTS;
+          if (mic.heard && level.rms > 0) {
             mic.gain.gain.value = Math.min(CONFIG.MAX_GAIN, Math.max(0.25, CONFIG.TARGET_LEVEL / level.rms));
+            mic.usual = voice ? level.rms * mic.gain.gain.value : 0;
           }
           data.response = null;
+          data.check_voice = voice;
+          data.check_attempt = checkTries;
           data.check_rms = round3(level.rms);
           data.mic_gain = round3(mic.gain.gain.value);
           jsPsych.data.addProperties({ mic_gain: round3(mic.gain.gain.value) });
