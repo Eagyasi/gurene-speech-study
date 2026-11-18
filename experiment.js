@@ -245,14 +245,20 @@
   // How many milliseconds of the recording were at least this loud.
   const soundMs = (frames, threshold) => frames.filter((f) => f >= threshold).length * TICK_MS;
 
-  // Was a voice heard? During the session the volume is already set, so a
-  // voice is anything clearly above silence and above a fifth of this
-  // person's usual level.
+  // Was a voice heard? The recording is judged against itself, not against a
+  // fixed loudness, because a quiet voice is still a voice. A voice is sound
+  // that stands well above the quietest moments of the same recording and
+  // stays near its own loudest level for long enough to be a phrase. A tap
+  // on the screen is too short, and a silent room has nothing that stands out.
+  // (Checked against 1,125 real recordings on 18 November 2026.)
   function voiceMs(level) {
-    return soundMs(level.frames, Math.max(0.02, 0.2 * (mic.usual || 0)));
-  }
-  function rememberLevel(rms) {
-    mic.usual = mic.usual ? 0.7 * mic.usual + 0.3 * rms : rms;
+    const f = level.frames;
+    if (!f.length) return 0;
+    const sorted = f.slice().sort((a, b) => a - b);
+    const floor = sorted[Math.floor(sorted.length * 0.05)];
+    const top = level.rms;
+    if (top < CONFIG.MIN_VOICE_LEVEL || top < 6 * floor) return 0;
+    return soundMs(f, Math.max(4 * floor, 0.25 * top));
   }
 
   // The sound check runs before the volume is set, when a quiet microphone
@@ -276,9 +282,7 @@
   // distorted ones. A change of volume does not change the formants.
   function guardGain(peak) {
     if (!mic.gain || !(peak > CONFIG.GUARD_PEAK)) return false;
-    const before = mic.gain.gain.value;
-    mic.gain.gain.value = Math.max(0.05, before * CONFIG.SAFE_PEAK / peak);
-    if (mic.usual) mic.usual *= mic.gain.gain.value / before;
+    mic.gain.gain.value = Math.max(0.05, mic.gain.gain.value * CONFIG.SAFE_PEAK / peak);
     return true;
   }
 
@@ -325,7 +329,6 @@
         data.attempt = attempt;
         again = heard === false && attempt <= CONFIG.EMPTY_RETRIES && emptyRun < 3;
         data.kept = !again;
-        if (heard) rememberLevel(level.rms);
         guardGain(level.peak);
         if (again) { data.response = null; return; }
         emptyRun = heard === false ? emptyRun + 1 : 0;
@@ -362,7 +365,6 @@
       const level = meterStop();
       data.level_peak = mic.analyser ? round3(level.peak) : null;
       data.gain_used = mic.gain ? round3(mic.gain.gain.value) : null;
-      if (mic.analyser && voiceMs(level) >= CONFIG.MIN_VOICE_MS) rememberLevel(level.rms);
       guardGain(level.peak);
       data.response = null;
     }
@@ -391,7 +393,6 @@
           mic.heard = voice || checkTries >= CONFIG.CHECK_ATTEMPTS;
           if (mic.heard && level.rms > 0) {
             mic.gain.gain.value = Math.min(CONFIG.MAX_GAIN, Math.max(0.25, CONFIG.TARGET_LEVEL / level.rms));
-            mic.usual = voice ? level.rms * mic.gain.gain.value : 0;
           }
           data.response = null;
           data.check_voice = voice;

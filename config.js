@@ -62,11 +62,14 @@ const CONFIG = {
   GUARD_PEAK: 0.7,
   SAFE_PEAK: 0.35,
 
-  // Empty recordings. A recording with less than MIN_VOICE_MS of voice in it
-  // counts as empty. The participant then sees "We did not hear you" and
-  // reads the phrase again, up to EMPTY_RETRIES more times. Only the last
-  // attempt is saved, so the number of files does not change.
-  MIN_VOICE_MS: 300,
+  // Empty recordings. A recording counts as empty when it has less than
+  // MIN_VOICE_MS of sound that stands out from its own background, or when
+  // its loudest moment is below MIN_VOICE_LEVEL (a silent room). A quiet
+  // voice still counts as a voice. The participant then sees "We did not
+  // hear you" and reads the phrase again, up to EMPTY_RETRIES more times.
+  // Only the last attempt is saved, so the number of files does not change.
+  MIN_VOICE_MS: 240,
+  MIN_VOICE_LEVEL: 0.007,
   EMPTY_RETRIES: 2,
 
   // The sound check asks again when it hears no voice. After this many tries
