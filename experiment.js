@@ -480,7 +480,9 @@
         browser: device.browser,
         os: device.os,
         mobile: device.mobile,
-        mic_gain: mic.gain ? round3(mic.gain.gain.value) : ""
+        mic_gain: mic.gain ? round3(mic.gain.gain.value) : "",
+        sex: about.sex,
+        age_range: about.age_range
       };
       isComplete = true;
       if (TEST_MODE) return;
@@ -550,6 +552,27 @@
   };
 
   const field = (label, input) => `<p><label>${label}<br>${input}</label></p>`;
+
+  // Two questions about the speaker. The answers are research data: they are
+  // added to every row of the trial table and to the completion record.
+  const about = { sex: "", age_range: "" };
+  const aboutForm = {
+    type: jsPsychSurveyHtmlForm,
+    preamble: TEXT.about_html,
+    html:
+      field(TEXT.about_sex, `<select name="sex" required><option value="">${TEXT.about_choose}</option>` +
+        `<option value="F">${TEXT.about_female}</option><option value="M">${TEXT.about_male}</option></select>`) +
+      field(TEXT.about_age, `<select name="age_range" required><option value="">${TEXT.about_choose}</option>` +
+        (CONFIG.AGE_RANGES || []).map((a) => `<option>${a}</option>`).join("") + "</select>"),
+    button_label: TEXT.about_button,
+    data: { phase: "about" },
+    on_finish: (data) => {
+      const r = data.response || {};
+      about.sex = r.sex || "";
+      about.age_range = r.age_range || "";
+      jsPsych.data.addProperties({ sex: about.sex, age_range: about.age_range });
+    }
+  };
   const paymentForm = {
     type: jsPsychSurveyHtmlForm,
     preamble: (TEST_MODE ? TEXT.payment_test_note : "") + TEXT.payment_form_html,
@@ -645,6 +668,7 @@
         test_mode: TEST_MODE
       })
     });
+    if (CONFIG.ASK_ABOUT) timeline.push(aboutForm);
     timeline.push({
       type: jsPsychBrowserCheck,
       features: ["width", "height", "browser", "browser_version", "mobile", "os"]

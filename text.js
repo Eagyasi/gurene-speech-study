@@ -18,6 +18,14 @@ const TEXT = {
   invite_wrong: "That code is not valid. Check it and try again.",
   invite_used: "This code has already been used.",
 
+  about_html: "<p>Two short questions about you.</p>",
+  about_sex: "Sex",
+  about_female: "Female",
+  about_male: "Male",
+  about_age: "Age",
+  about_choose: "Choose…",
+  about_button: "Continue",
+
   mic_html:
     "<p>This study records your voice.</p>" +
     "<p>Please find a quiet place. Hold the phone or sit about a hand's length from the microphone.</p>" +

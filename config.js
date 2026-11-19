@@ -24,6 +24,12 @@ const CONFIG = {
   // Each recruited person gets one code from the private list.
   REQUIRE_CODE: true,
 
+  // Two questions about the speaker, asked before the recordings start: sex
+  // and age range. The answers are research data and are saved with every
+  // recording's row. Change the age ranges here.
+  ASK_ABOUT: true,
+  AGE_RANGES: ["18-25", "25-30", "30-35", "35-40"],
+
   // Payment. When true, people who finish are asked for mobile money details.
   // The details are saved in a separate PAYMENT file, never with the research data.
   COLLECT_PAYMENT: true,
