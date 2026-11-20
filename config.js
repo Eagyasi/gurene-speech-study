@@ -28,7 +28,7 @@ const CONFIG = {
   // and age range. The answers are research data and are saved with every
   // recording's row. Change the age ranges here.
   ASK_ABOUT: true,
-  AGE_RANGES: ["18-25", "25-30", "30-35", "35-40"],
+  AGE_RANGES: ["18-25", "26-30", "31-35", "36-40", "Over 40"],
 
   // Payment. When true, people who finish are asked for mobile money details.
   // The details are saved in a separate PAYMENT file, never with the research data.
